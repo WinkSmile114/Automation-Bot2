@@ -32,70 +32,23 @@ bot.command("start", (ctx) =>
   })
 );
 
-// bot.command("add_balance", async (ctx) => {
-//   const hashTag = ctx.message?.text
-//     ?.split(" ")
-//     .find((word) => word.startsWith("#"));
+bot.command("add_account", async (ctx) => {
+  // use regex to check the account is in the format username:password
+  const account = ctx.message?.text?.split(" ")[1];
 
-//   if (!hashTag) {
-//     return ctx.reply("Please enter a valid amount. Example: /add_balance #10");
-//   }
-//   const amount = parseInt(hashTag.replace("#", ""));
+  console.log(account);
 
-//   if (amount < 10) {
-//     return ctx.reply("Please enter an amount greater than $10");
-//   }
+  const [username, ...rest] = account?.split(":") || [];
+  const password = rest.join(":");
 
-//   const activeSession = await getSession();
+  if (!username || !password) {
+    await ctx.reply("Invalid account format");
+    return;
+  }
 
-//   if (!activeSession) {
-//     return ctx.reply("No active session yet, please try again later");
-//   }
-
-//   const activeAccount = await getAccount(activeSession.username);
-
-//   if (!activeAccount) {
-//     return ctx.reply("No account found, please add an account");
-//   }
-
-//   try {
-//     console.log("Adding balance");
-//     const details = await addBalanceToAccount(activeSession);
-//     console.log(details);
-//     await ctx.reply(`You have added $${amount} to your account`);
-//   } catch (error: any) {
-//     const explanation = await explainError(error.toString());
-//     return explanation;
-//   }
-// });
-
-// bot.command("set_active", async (ctx) => {
-//   try {
-//     const username = ctx.message?.text?.split(" ")[1];
-
-//     if (!username) {
-//       return ctx.reply("Please enter a username to set as active");
-//     }
-
-//     const account = await getAccount(username);
-
-//     if (!account) {
-//       return ctx.reply("No account found with that username");
-//     }
-
-//     const session = await getStampsSession(account.username, account.password);
-
-//     setSession(session);
-
-//     return ctx.reply(`Active account set to ${account.username}`);
-//   } catch (error) {
-//     if (error instanceof AccountError) {
-//       return ctx.reply(error.message);
-//     }
-
-//     ctx.reply("An error occured, please try again later");
-//   }
-// });
+  await store.account.addAccount(username, password);
+  await ctx.reply(`Account ${username} added`);
+});
 
 bot.command("sessions", async (ctx) => {
   const sessions = await store.session.getSessions();
@@ -148,7 +101,8 @@ systemConfig.redisClient
     logg(err, { level: "error", exit: true });
   })
   .finally(async () => {
-    await crons.addAccountsToSessionQueue();
+    // await crons.addAccountsToSessionQueue();
+    await crons.updateSessionBalance();
     crons.updateSessionCronJob.start();
     bot.start();
     logg("Bot running!!!");
@@ -158,7 +112,4 @@ systemConfig.redisClient
 // This code is a telegram bot that generates labels for shipments. It uses the grammy library to interact with the telegram API. The bot has several commands and callbacks that allow users to add accounts, set an active account, add balance to an account, and create labels for shipments. The bot also uses a queue to process label generation jobs in the background.
 // # Commands
 // - `/stats`: Get bot statistics
-// - `/accounts`: List all accounts
-// - `/add_balance #amount`: Add balance to active account ($)
-// - `/set_active username`: Set an account as active
-// - `/start`: Start the bot and display available actions
+// 

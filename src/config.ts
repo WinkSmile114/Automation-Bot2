@@ -42,6 +42,7 @@ const labelGenQueue = new Queue("label-gen", {
 
 const sessionGenQueue = new Queue("session-gen", {
   redis: { url: redisUrl },
+  removeOnFailure: true,
 });
 
 labelGenQueue.on("ready", () => {
@@ -69,7 +70,7 @@ const systemConfig = {
   proxyUsernamePassword,
   redisClient,
   labelGenQueue,
-  sessionGenQueue
+  sessionGenQueue,
 };
 
 export default systemConfig;

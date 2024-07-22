@@ -141,8 +141,6 @@ export async function getStampsSession(
     args: browserArgs,
   });
 
-  let accountInfo: StampsCustomerInfo | null = null;
-
   try {
     const context = browser.defaultBrowserContext();
     await context.overridePermissions(TARGET_URL_BASE, []);
@@ -517,12 +515,13 @@ async function fetchAccountInfo(headers: BrowserSession["headers"]) {
   return accountInfo;
 }
 
-export async function addBalanceToAccount(session: BrowserSession) {
+export async function addBalanceToAccount(
+  session: BrowserSession,
+  amount: number
+) {
   try {
     const axiosInstance = constructAxiosInstance(session.headers);
     const controlTotal = session.controlTotal;
-    // Random number between 10 and 500
-    const amount = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
 
     const fundAccResponse = await axiosInstance.post(
       "https://print.stamps.com/WebPostage/Ajax/PurchasePostage.aspx",
@@ -532,13 +531,25 @@ export async function addBalanceToAccount(session: BrowserSession) {
         ClientFingerprint: "",
       })
     );
+
+    const data = fundAccResponse.data;
+
     // {"PurchaseStatus":"Success","TransactionID":235243140,"PostageBalance":{"AvailablePostage":207.1700,"ControlTotal":888.5300},"MIRequired":false,"ErrorCode":0,"ErrorDescription":""}
-    const funded = fundAccResponse.data["PurchaseStatus"] === "Success";
+    const funded = data["PurchaseStatus"] === "Success";
 
     if (!funded) {
       const errorMsg = fundAccResponse.data["ErrorDescription"];
       throw new FundingError(errorMsg || "Unable to fund account");
     }
+
+    logg(`Funded ${session.username} successfully. PostageBalance ${String(data["PostageBalance"])}`)
+
+    // update the session balance and control total
+    await store.session.setSession(session.username, {
+      ...session,
+      balance: data["PostageBalance"]["AvailablePostage"],
+      controlTotal: data["PostageBalance"]["ControlTotal"],
+    });
   } catch (error) {
     throw new FundingError(error);
   }

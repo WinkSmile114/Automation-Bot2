@@ -32,7 +32,7 @@ export async function requestLabelDetails(
     await ctx.reply("Please upload a csv file");
     return;
   }
-  
+
   const csv = await conversation.external(async () => {
     const response = await axios.get(
       `https://api.telegram.org/file/bot${systemConfig.botToken}/${file.file_path}`
@@ -71,7 +71,10 @@ export async function requestLabelDetails(
     };
 
     const job = await conversation.external(async () => {
-      const job = await systemConfig.labelGenQueue.createJob(jobData).save();
+      const job = await systemConfig.labelGenQueue
+        .createJob(jobData)
+        .retries(1)
+        .save();
       return job;
     });
 
@@ -83,7 +86,7 @@ export async function requestLabelDetails(
 
 export const accountsCallback = async (ctx: AppContext) => {
   const accounts = await store.account.getAccounts();
-  const session = await store.session.getActiveSession();
+  const sessions = await store.session.getSessions();
 
   if (!accounts) {
     await ctx.reply("No accounts found, please add an account");
@@ -92,7 +95,9 @@ export const accountsCallback = async (ctx: AppContext) => {
 
   const reply = accounts.map((account) => {
     return `${account.username} - ${account.enabled ? "Enabled" : "Disabled"}${
-      session?.username === account.username ? " - Active" : ""
+      sessions.some((sess) => sess.username === account.username)
+        ? " - Active"
+        : ""
     }`;
   });
 
