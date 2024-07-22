@@ -1,0 +1,2 @@
+RowID,SenderName,FromCompany,FromPhone,FromZip,FromAddress1,FromAddress2,FromCity,FromState,ToName,ToCompany,ToPhone,ToZip,ToAddress1,ToAddress2,ToCity,ToState,weightln(LB),Length(in),Height(in),Width(in),CLASS,Order ID(原始-票件数+序号),SKU,PO NO.,Order ID,PKG NO.,自定义命名前缀,Tracking number,虚拟地址状态
+,Enmei hou,,9099698360,91733,1431 Potrero Ave Ste D,,South El Monte,CA,Trena Harris,,2018976257,75801,110 Daisy Ln,,PALESTINE,TX,11oz,8,8,5,94-STP-G1G2,PO-211-15795309819512349-1-1,EZ-JQ,PO2407100118,PO-211-15795309819512349,596647,PO2407100118_596647,,真实地址
